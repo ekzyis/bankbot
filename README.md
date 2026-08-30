@@ -6,26 +6,27 @@ A Stacker News bot that lets you exchange credits for sats anonymously.
 
 ## How To Use
 
-1. Create an **amountless** lightning invoice which is **valid for at least 24 hours**
+1. Create a lightning invoice **with an amount** which is **valid for at least 24 hours**
 2. Switch to [@anon](https://stacker.news/anon)
 3. Mention the bot and include your lightning invoice:
 
-> [@ccbank](https://stacker.news/ccbank) lnbc...
+> [@ccbank](https://stacker.news/ccbank) sell lnbc...
 
 4. Wait for the bot to reply with a quote, for example:
 
-> [@anon](https://stacker.news/anon) The current exchange rate is 2 credits per sat (max 10,000 sats).
+> [@anon](https://stacker.news/anon) Zap me 14286 credits, then I will pay your 5000 sats lightning
+> invoice.
+>
+> <sub>exchange rate: 2.86 credits/sat · you send 14286 credits · bot receives 10000 credits ·
+> payments can take up to 24h</sub>
 
-This means the bot agrees to send you up to 10,000 sats for credits at the given exchange rate.
+As the footnote mentions, the bot will include the 30% fee between users in the amount you should
+send.
 
-_If your lightning invoice includes an amount or is invalid for other reasons, the bot will reply
-with an error._
+_If your lightning invoice is amountless or is invalid for other reasons, the bot will reply with an
+error._
 
-5. Zap the bot from the account whose credits you want to sell.
-
-> [!IMPORTANT]
-> Due to how Stacker News works, the bot will only receive 70% of what you send. So for the bot to
-> receive 100 credits, you need to send 100/0.7 ≈ 143 credits.
+5. Zap the bot the quoted amount from the account whose credits you want to sell.
 
 6. Wait for the payment
 
@@ -39,5 +40,5 @@ Once [@ek](https://stacker.news/ek) paid, the bot replies with a proof of paymen
 this proof to verify that the bot pays out.
 
 Future versions might use PGP for encryption to hide the recipient's node pubkey in the lightning
-invoice. Only the payment hash needs to be public for payment verification.
+invoice. Only the payment hash and amount need to be public for payment verification.
 
