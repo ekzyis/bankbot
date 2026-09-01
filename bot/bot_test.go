@@ -111,13 +111,13 @@ func TestPoll_ValidInvoice_QuotesAndNotifies(t *testing.T) {
 	}
 	// 2500 sats * 2 credits/sat = 5000 credits to receive; grossed up for the
 	// ~30% SN zap fee = ceil(5000 * 10 / 7) = 7143 credits to send.
-	if !strings.Contains(fsn.replies[0].text, "Zap me 7143 credits") {
+	if !strings.Contains(fsn.replies[0].text, "Zap me 7,143 credits") {
 		t.Errorf("unexpected quote: %q", fsn.replies[0].text)
 	}
-	if !strings.Contains(fsn.replies[0].text, "2500 sats lightning invoice") {
+	if !strings.Contains(fsn.replies[0].text, "2,500 sats lightning invoice") {
 		t.Errorf("quote should reference the invoice amount: %q", fsn.replies[0].text)
 	}
-	if !strings.Contains(fsn.replies[0].text, "bot receives 5000 credits") {
+	if !strings.Contains(fsn.replies[0].text, "bot receives 5,000 credits") {
 		t.Errorf("quote should show the received-credits breakdown: %q", fsn.replies[0].text)
 	}
 	// Seller's effective rate: 7143 credits / 2500 sats = 2.857 credits/sat.
@@ -170,7 +170,7 @@ func TestPoll_Zap_NotifiesWhenFunded(t *testing.T) {
 		t.Fatalf("expected a funded-request notification, got %d calls", len(fn.calls))
 	}
 	paid := fn.calls[1]
-	if !strings.Contains(paid.title, "7143/7143 credits") {
+	if !strings.Contains(paid.title, "7,143/7,143 credits") {
 		t.Errorf("paid title should carry the amounts; got %q", paid.title)
 	}
 	if !strings.Contains(paid.title, "@alice") {
@@ -276,7 +276,7 @@ func TestPoll_SellSurroundingWhitespace_OK(t *testing.T) {
 	if err := bot.Poll(); err != nil {
 		t.Fatalf("Poll: %v", err)
 	}
-	if len(fsn.replies) != 1 || !strings.Contains(fsn.replies[0].text, "Zap me 7143 credits") {
+	if len(fsn.replies) != 1 || !strings.Contains(fsn.replies[0].text, "Zap me 7,143 credits") {
 		t.Errorf("expected a quote despite extra whitespace, got %+v", fsn.replies)
 	}
 	if len(fn.calls) != 1 {
@@ -364,7 +364,7 @@ func TestPoll_NearTreasuryLimit_RejectsOverReducedMax(t *testing.T) {
 	if len(fsn.replies) != 1 {
 		t.Fatalf("expected 1 reply, got %d", len(fsn.replies))
 	}
-	wantMax := fmt.Sprintf("at most %d sats", reduced)
+	wantMax := "at most " + formatSats(reduced)
 	if !strings.Contains(fsn.replies[0].text, wantMax) {
 		t.Errorf("reply should state the reduced max %q, got %q", wantMax, fsn.replies[0].text)
 	}
@@ -381,7 +381,7 @@ func TestPoll_ExceedsMax_Rejects(t *testing.T) {
 	if err := bot.Poll(); err != nil {
 		t.Fatalf("Poll: %v", err)
 	}
-	if len(fsn.replies) != 1 || !strings.Contains(fsn.replies[0].text, fmt.Sprintf("at most %d sats", bank.MaxSats)) {
+	if len(fsn.replies) != 1 || !strings.Contains(fsn.replies[0].text, "at most "+formatSats(bank.MaxSats)) {
 		t.Errorf("expected over-cap rejection stating the max, got %+v", fsn.replies)
 	}
 	if len(fn.calls) != 0 {
@@ -397,7 +397,7 @@ func TestPoll_BelowMin_Rejects(t *testing.T) {
 	if err := bot.Poll(); err != nil {
 		t.Fatalf("Poll: %v", err)
 	}
-	if len(fsn.replies) != 1 || !strings.Contains(fsn.replies[0].text, fmt.Sprintf("at least %d sats", bank.MinSats)) {
+	if len(fsn.replies) != 1 || !strings.Contains(fsn.replies[0].text, "at least "+formatSats(bank.MinSats)) {
 		t.Errorf("expected below-min rejection stating the floor, got %+v", fsn.replies)
 	}
 	if len(fn.calls) != 0 {
@@ -544,5 +544,25 @@ func TestNewBot_BaselinesExistingMentions(t *testing.T) {
 	}
 	if len(fsn.replies) != 1 || fsn.replies[0].parentID != 700 {
 		t.Errorf("post-baseline mention should be replied to, got %+v", fsn.replies)
+	}
+}
+
+func TestCommas(t *testing.T) {
+	cases := []struct {
+		n    int
+		want string
+	}{
+		{0, "0"},
+		{1, "1"},
+		{999, "999"},
+		{1000, "1,000"},
+		{12345, "12,345"},
+		{1234567, "1,234,567"},
+		{-1000, "-1,000"},
+	}
+	for _, c := range cases {
+		if got := commas(c.n); got != c.want {
+			t.Errorf("commas(%d) = %q, want %q", c.n, got, c.want)
+		}
 	}
 }

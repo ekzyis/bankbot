@@ -138,7 +138,7 @@ func (b *Bot) handleZap(n sn.Notification, t tracked) (handled bool, err error) 
 		return false, nil
 	}
 
-	title := fmt.Sprintf("Received %d/%d credits from @%s", n.Item.Sats, t.requested, t.author)
+	title := fmt.Sprintf("Received %s/%s credits from @%s", commas(n.Item.Sats), commas(t.requested), t.author)
 	body := fmt.Sprintf("Open link to pay invoice\npayment_hash=%s", t.paymentHash)
 	if err := b.notify.Notify(title, body, t.itemURL, "zap"); err != nil {
 		return false, fmt.Errorf("notify: %w", err)
@@ -244,14 +244,14 @@ func (b *Bot) evaluate(item sn.Item, credits int) (reply string, note *notificat
 	sats := bank.MsatsToSats(pr.Msats)
 	if sats < bank.MinSats {
 		return fmt.Sprintf(
-			"@%s Sorry, invoices must be for at least %d sats, but yours is for %d sats.",
-			author, bank.MinSats, sats,
+			"@%s Sorry, invoices must be for at least %s, but yours is for %s.",
+			author, formatSats(bank.MinSats), formatSats(sats),
 		), nil
 	}
 	if sats > maxAccepted {
 		return fmt.Sprintf(
-			"@%s Sorry, I can pay at most %d sats right now, but your invoice is for %d sats.",
-			author, maxAccepted, sats,
+			"@%s Sorry, I can pay at most %s right now, but your invoice is for %s.",
+			author, formatSats(maxAccepted), formatSats(sats),
 		), nil
 	}
 
@@ -265,9 +265,9 @@ func (b *Bot) evaluate(item sn.Item, credits int) (reply string, note *notificat
 	sendRate := send * bank.RateScale / sats
 
 	reply = fmt.Sprintf(
-		"@%s Zap me %d credits, then I will pay your %d sats lightning invoice.\n\n"+
-			"<sub>exchange rate: %s credits/sat · you send %d credits · bot receives %d credits · payments can take up to 24h</sub>",
-		author, send, sats, bank.FormatRate(sendRate), send, receive,
+		"@%s Zap me %s, then I will pay your %s lightning invoice.\n\n"+
+			"<sub>exchange rate: %s credits/sat · you send %s · bot receives %s · payments can take up to 24h</sub>",
+		author, formatCredits(send), formatSats(sats), bank.FormatRate(sendRate), formatCredits(send), formatCredits(receive),
 	)
 
 	// TODO: include public key
@@ -285,4 +285,14 @@ func (b *Bot) evaluate(item sn.Item, credits int) (reply string, note *notificat
 		paymentHash: fmt.Sprintf("%x", pr.PaymentHash),
 	}
 	return reply, note
+}
+
+// FormatSats renders a sat amount with thousands separators and the correct
+// unit, e.g. 1 -> "1 sat", 1000 -> "1,000 sats".
+func FormatSats(sats int) string {
+	unit := "sats"
+	if sats == 1 {
+		unit = "sat"
+	}
+	return commas(sats) + " " + unit
 }
