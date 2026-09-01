@@ -13,6 +13,7 @@ const RateScale = 1000
 
 const (
 	DefaultRate    = 2 * RateScale // 2.000 credits per sat
+	MinSats        = 1_000         // floor on sats per exchange
 	MaxSats        = 10_000        // cap on sats per exchange
 	TreasuryTarget = 100_000       // stop accepting credits once the treasury reaches this
 )

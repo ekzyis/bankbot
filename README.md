@@ -6,7 +6,8 @@ A Stacker News bot that lets you exchange credits for sats anonymously.
 
 ## How To Use
 
-1. Create a lightning invoice **with an amount** which is **valid for at least 24 hours**
+1. Create a lightning invoice **with an amount > 1,000 sats** which is **valid for at least 24
+   hours**
 2. Switch to [@anon](https://stacker.news/anon)
 3. Mention the bot and include your lightning invoice:
 

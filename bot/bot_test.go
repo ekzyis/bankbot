@@ -389,6 +389,22 @@ func TestPoll_ExceedsMax_Rejects(t *testing.T) {
 	}
 }
 
+func TestPoll_BelowMin_Rejects(t *testing.T) {
+	inv := lntest.MakeInvoice(t, uint64(bank.MinSats-1)*1000) // below the per-exchange floor
+	bot, fsn, fn, _ := newTestBot(t)
+	fsn.mentions = []sn.Notification{mention(32, 3200, "sybil", "@ccbank sell "+inv)}
+
+	if err := bot.Poll(); err != nil {
+		t.Fatalf("Poll: %v", err)
+	}
+	if len(fsn.replies) != 1 || !strings.Contains(fsn.replies[0].text, fmt.Sprintf("at least %d sats", bank.MinSats)) {
+		t.Errorf("expected below-min rejection stating the floor, got %+v", fsn.replies)
+	}
+	if len(fn.calls) != 0 {
+		t.Errorf("expected no notification for a below-min invoice, got %d", len(fn.calls))
+	}
+}
+
 func TestPoll_CreditsError_RetriesLater(t *testing.T) {
 	inv := lntest.MakeInvoice(t, 2500000)
 	bot, fsn, fn, fbal := newTestBot(t)

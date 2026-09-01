@@ -242,6 +242,12 @@ func (b *Bot) evaluate(item sn.Item, credits int) (reply string, note *notificat
 	}
 
 	sats := bank.MsatsToSats(pr.Msats)
+	if sats < bank.MinSats {
+		return fmt.Sprintf(
+			"@%s Sorry, invoices must be for at least %d sats, but yours is for %d sats.",
+			author, bank.MinSats, sats,
+		), nil
+	}
 	if sats > maxAccepted {
 		return fmt.Sprintf(
 			"@%s Sorry, I can pay at most %d sats right now, but your invoice is for %d sats.",
