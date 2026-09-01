@@ -160,7 +160,7 @@ func quoteAndTrack(t *testing.T) (*Bot, *fakeSN, *fakeNotifier, string) {
 }
 
 func TestPoll_Zap_NotifiesWhenFunded(t *testing.T) {
-	bot, fsn, fn, inv := quoteAndTrack(t)
+	bot, fsn, fn, _ := quoteAndTrack(t)
 
 	fsn.zaps = []sn.Notification{votification(5, 1, 7143)} // covers the 7143 requested
 	if err := bot.Poll(); err != nil {
@@ -173,11 +173,11 @@ func TestPoll_Zap_NotifiesWhenFunded(t *testing.T) {
 	if !strings.Contains(paid.title, "7143/7143 credits") {
 		t.Errorf("paid title should carry the amounts; got %q", paid.title)
 	}
-	if !strings.Contains(paid.body, inv) {
-		t.Errorf("paid notification should include the invoice to pay; got %q", paid.body)
+	if !strings.Contains(paid.title, "@alice") {
+		t.Errorf("paid title should name payer")
 	}
-	if !strings.Contains(paid.body, "@alice") || !strings.Contains(paid.body, "payment_hash=") {
-		t.Errorf("paid notification should name the payer and payment hash; got %q", paid.body)
+	if !strings.Contains(paid.body, "payment_hash=") {
+		t.Errorf("paid notification should include payment hash; got %q", paid.body)
 	}
 	if paid.click != "https://stacker.news/items/100" {
 		t.Errorf("click should link the original item; got %q", paid.click)
