@@ -152,6 +152,9 @@ func (b *Bot) handleMention(n sn.Notification, credits int) error {
 	if item.DeletedAt.Valid {
 		return nil
 	}
+	if !strings.HasPrefix(strings.ToLower(strings.TrimSpace(item.Text)), strings.ToLower("@"+b.name)) {
+		return nil
+	}
 
 	reply, note := b.evaluate(item, credits)
 

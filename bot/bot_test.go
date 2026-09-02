@@ -251,8 +251,6 @@ func TestPoll_MalformedSell_RepliesHelp(t *testing.T) {
 		"@ccbank sell",               // missing invoice
 		"@ccbank sell " + inv + " x", // trailing junk
 		"@ccbank " + inv,             // missing command
-		"sell " + inv,                // mention not first
-		"@notbank sell " + inv,       // wrong account mentioned
 	} {
 		bot, fsn, fn, _ := newTestBot(t)
 		fsn.mentions = []sn.Notification{mention(50, 5000, "peg", text)}
@@ -261,6 +259,26 @@ func TestPoll_MalformedSell_RepliesHelp(t *testing.T) {
 		}
 		if len(fsn.replies) != 1 || !strings.Contains(fsn.replies[0].text, "Usage:") {
 			t.Errorf("text %q: expected help reply, got %+v", text, fsn.replies)
+		}
+		if len(fn.calls) != 0 {
+			t.Errorf("text %q: expected no notification, got %d", text, len(fn.calls))
+		}
+	}
+}
+
+func TestPoll_MentionNotFirst_Ignored(t *testing.T) {
+	inv := lntest.MakeInvoice(t, 0)
+	for _, text := range []string{
+		"sell " + inv,          // mention not first
+		"@notbank sell " + inv, // wrong account mentioned
+	} {
+		bot, fsn, fn, _ := newTestBot(t)
+		fsn.mentions = []sn.Notification{mention(50, 5000, "peg", text)}
+		if err := bot.Poll(); err != nil {
+			t.Fatalf("Poll(%q): %v", text, err)
+		}
+		if len(fsn.replies) != 0 {
+			t.Errorf("text %q: expected no reply, got %+v", text, fsn.replies)
 		}
 		if len(fn.calls) != 0 {
 			t.Errorf("text %q: expected no notification, got %d", text, len(fn.calls))
