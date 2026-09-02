@@ -15,10 +15,10 @@ A Stacker News bot that lets you exchange credits for sats anonymously.
 
 4. Wait for the bot to reply with a quote, for example:
 
-> [@anon](https://stacker.news/anon) Zap me 14286 credits, then I will pay your 5000 sats lightning
-> invoice.
+> [@anon](https://stacker.news/anon) Zap me 10,000 credits, then I will pay your 5,000 sats
+> lightning invoice.
 >
-> <sub>exchange rate: 2.86 credits/sat · you send 14286 credits · bot receives 10000 credits ·
+> <sub>exchange rate: 2.00 credits/sat · you send 10,000 credits · bot receives 7,000 credits ·
 > payments can take up to 24h</sub>
 
 As the footnote mentions, the bot will include the 30% fee between users in the amount you should
