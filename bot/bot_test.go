@@ -109,19 +109,19 @@ func TestPoll_ValidInvoice_QuotesAndNotifies(t *testing.T) {
 	if fsn.replies[0].parentID != 100 {
 		t.Errorf("reply parentID = %d, want 100", fsn.replies[0].parentID)
 	}
-	// 2500 sats * 2 credits/sat = 5000 credits to receive; grossed up for the
-	// ~30% SN zap fee = ceil(5000 * 10 / 7) = 7143 credits to send.
-	if !strings.Contains(fsn.replies[0].text, "Zap me 7,143 credits") {
+	// 2500 sats * 1.4 credits/sat = 3500 credits to receive; grossed up for the
+	// ~30% SN zap fee = ceil(3500 * 10 / 7) = 5000 credits to send.
+	if !strings.Contains(fsn.replies[0].text, "Zap me 5,000 credits") {
 		t.Errorf("unexpected quote: %q", fsn.replies[0].text)
 	}
 	if !strings.Contains(fsn.replies[0].text, "2,500 sats lightning invoice") {
 		t.Errorf("quote should reference the invoice amount: %q", fsn.replies[0].text)
 	}
-	if !strings.Contains(fsn.replies[0].text, "bot receives 5,000 credits") {
+	if !strings.Contains(fsn.replies[0].text, "bot receives 3,500 credits") {
 		t.Errorf("quote should show the received-credits breakdown: %q", fsn.replies[0].text)
 	}
-	// Seller's effective rate: 7143 credits / 2500 sats = 2.857 credits/sat.
-	if !strings.Contains(fsn.replies[0].text, "2.857 credits/sat") {
+	// Seller's effective rate: 5000 credits / 2500 sats = 2.000 credits/sat.
+	if !strings.Contains(fsn.replies[0].text, "2.000 credits/sat") {
 		t.Errorf("quote should show the seller's effective rate: %q", fsn.replies[0].text)
 	}
 	if !strings.Contains(fsn.replies[0].text, "payments can take up to 24h") {
@@ -133,7 +133,7 @@ func TestPoll_ValidInvoice_QuotesAndNotifies(t *testing.T) {
 	if !strings.Contains(fn.calls[0].body, "payment_hash=") {
 		t.Errorf("notification should include the payment hash; got %q", fn.calls[0].body)
 	}
-	if !strings.Contains(fn.calls[0].body, "7143/5000 credits") {
+	if !strings.Contains(fn.calls[0].body, "5000/3500 credits") {
 		t.Errorf("notification should include the credit figures; got %q", fn.calls[0].body)
 	}
 	if fn.calls[0].click != "https://stacker.news/items/100" {
@@ -162,7 +162,7 @@ func quoteAndTrack(t *testing.T) (*Bot, *fakeSN, *fakeNotifier, string) {
 func TestPoll_Zap_NotifiesWhenFunded(t *testing.T) {
 	bot, fsn, fn, _ := quoteAndTrack(t)
 
-	fsn.zaps = []sn.Notification{votification(5, 1, 7143)} // covers the 7143 requested
+	fsn.zaps = []sn.Notification{votification(5, 1, 5000)}
 	if err := bot.Poll(); err != nil {
 		t.Fatalf("Poll: %v", err)
 	}
@@ -170,7 +170,7 @@ func TestPoll_Zap_NotifiesWhenFunded(t *testing.T) {
 		t.Fatalf("expected a funded-request notification, got %d calls", len(fn.calls))
 	}
 	paid := fn.calls[1]
-	if !strings.Contains(paid.title, "7,143/7,143 credits") {
+	if !strings.Contains(paid.title, "5,000/5,000 credits") {
 		t.Errorf("paid title should carry the amounts; got %q", paid.title)
 	}
 	if !strings.Contains(paid.title, "@alice") {
@@ -195,8 +195,8 @@ func TestPoll_Zap_NotifiesWhenFunded(t *testing.T) {
 func TestPoll_Zap_NotifiesAfterTopUp(t *testing.T) {
 	bot, fsn, fn, _ := quoteAndTrack(t)
 
-	// Partial zap: one short of the 7143 requested.
-	fsn.zaps = []sn.Notification{votification(5, 1, 7142)}
+	// Partial zap: one short of the 5000 requested.
+	fsn.zaps = []sn.Notification{votification(5, 1, 4999)}
 	if err := bot.Poll(); err != nil {
 		t.Fatalf("Poll (partial): %v", err)
 	}
@@ -276,7 +276,7 @@ func TestPoll_SellSurroundingWhitespace_OK(t *testing.T) {
 	if err := bot.Poll(); err != nil {
 		t.Fatalf("Poll: %v", err)
 	}
-	if len(fsn.replies) != 1 || !strings.Contains(fsn.replies[0].text, "Zap me 7,143 credits") {
+	if len(fsn.replies) != 1 || !strings.Contains(fsn.replies[0].text, "Zap me 5,000 credits") {
 		t.Errorf("expected a quote despite extra whitespace, got %+v", fsn.replies)
 	}
 	if len(fn.calls) != 1 {
